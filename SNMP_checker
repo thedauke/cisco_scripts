@@ -1,0 +1,40 @@
+#!/usr/bin/python
+
+import getpass
+import re
+import csv
+import paramiko
+import netmiko
+from argparse import ArgumentParser
+from netmiko import ConnectHandler
+
+if __name__ == '__main__':
+    parser = ArgumentParser(description='Arguments:')
+    parser.add_argument('-c', '--csv', required=True, action='store',
+                        help='Location of CSV file of IPs')
+
+
+args = parser.parse_args()
+
+ssh_username = ''
+
+
+ssh_password = ''
+
+with open(args.csv, 'r') as file:
+    reader = csv.DictReader(file)
+    for device_row in reader:
+        try:
+            ssh_session = ConnectHandler(device_type='cisco_ios',
+                    ip=device_row['Host'],
+                    username=ssh_username, password=ssh_password)
+            print ('********* {0} *********'.format(device_row['Host']))
+
+        # Specify your commands here, you can add more commands just follow the same syntax
+            print(ssh_session.send_command('sh run | i snmp-server community|hostname'))
+            #print(net_connect.send_command('sh run | i snmp-server community|hostname'))
+        # Specify exceptions here 
+        #except paramiko.AuthenticationException:
+        except netmiko.ssh_exception.NetmikoTimeoutException:
+            print ('{0}'.format(device_row['Host']),"Authenticaiton Problem!")
+            pass
